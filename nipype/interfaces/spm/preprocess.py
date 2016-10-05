@@ -29,6 +29,136 @@ from .base import (SPMCommand, scans_for_fname, func_is_3d,
 
 __docformat__ = 'restructuredtext'
 
+# class FieldMapInputSpec(SPMCommandInputSpec):
+#     presub_phase = File(exists=True, field='data.presubphasemag.phase',
+#                        copyfile=False,
+#                        desc='Presubtracted phase data.')
+#     presub_magnitude = File(exists=True, field='data.presubphasemag.magnitude',
+#                             copyfile=False,
+#                             desc='Single magnitude image.')
+#     echo_times = traits.List(traits.Float(), minlen=2, maxlen=2,
+#                              field='defaults.defaultsval.et',
+#                              desc='Short and long echo times in ms, format: [x, y].',
+#                              mandatory=True)
+#     mask_brain = traits.Bool(field='defaults.defaultsval.maskbrain',
+#                              desc='Indicate whether mask should be created from magnitude image.')
+#     blipdir = traits.Int(field='defaults.defaultsval.blipdir',
+#                          desc='Select polarity of the phase encode blips: -1 or 1.',
+#                          mandatory=True)
+#     total_readout_time = traits.Float(field='defaults.defaultsval.tert',
+#                                       desc='Total EPI readout time in ms.',
+#                                       mandatory=True)
+#     epi_based = traits.Bool(field='defaults.defaultsval.epifm',
+#                             desc='Non-EPI or EPI based field map.',
+#                             mandatory=True)
+#     jacobian_modulation = traits.Bool(field='defaults.defaultsval.ajm',
+#                                       desc='Should Jacobian modulation be used?',
+#                                       usedefault=True)
+#     unwrapping_method = traits.Enum('Mark3D', 'Mark2D', 'Huttonish',
+#                           desc='one of: Mark3D, Mark2D, Huttonish',
+#                           usedefault=True)
+#     uflags_fwhm = traits.Range(low=0.0, field='defaults.defaultsval.uflags.fwhm',
+#                         desc='Gaussian smoothing kernel width.')
+#     padding_kernel = traits.Int(field='defaults.defaultsval.uflags.pad',
+#                                 desc='Size of padding kernel if required.')
+#     weighted_smoothing = traits.Bool(field='defaults.defaultsval.uflags.ws',
+#                                      desc='Select normal (0) or weighted (1) smoothing.')
+#     template = File(exists=True, field='defaults.defaultsval.mflags.template',
+#                     desc='Select template file for segmentation to create brain mask.',
+#                     usedefault=True)
+#     mflags_fwhm = traits.Range(low=0.0, field='defaults.defaultsval.uflags.fwhm',
+#                         desc='Gaussian smoothing kernel width for brain mask.')
+#     erosions = traits.Int(field='defaultsval.mflags.nerode',
+#                           desc='Number of erosions used to create brain mask.')
+#     dilations = traits.In(field='defaults.defaultsval.mflags.ndilate',
+#                           desc='Number of dilations used to create brain mask.')
+#     threshold = traits.Range(low=0.0, field='defaults.defaultsval.mflags.thresh',
+#                              desc='Threshold used to create brain mask.')
+#     regularization = traits.Range(field='defaults.defaultsval.mflags.reg',
+#                                   desc='Regularization value used in segementation.')
+#     epi = File(exists=True, field='session.epi',
+#                copyfile=True,
+#                desc='Select single image to distortion correct. Only for comparison.',
+#                mandatory=True)
+#     match_vdm = traits.Bool(field='matchvdm',
+#                            desc='Match VDM to EPI image?')
+#     sess_name = traits.String(field='sessname',
+#                              desc='Filename extension for VDM files for run/session.')
+#     write_unwarped = traits.Bool(field='writeunwarped',
+#                                  desc='Write out distorted corrected EPI. For comparison only.')
+#     anat = File(exists=True, field='anat',
+#                 desc='Anatomiocal image for comparison.')
+#     match_anat = traits.Bool(field='matchanat',
+#                              desc='Match anatomical to EPI. For comparison only.')
+#
+# class FieldMapOutputSpec(TraitedSpec):
+#     vdm_file = File(exists=True, desc='Voxel displacement map')
+#     unwarped_epi_file = File(exists=True, desc='Unwarped epi with voxel displacement map')
+#
+# class FieldMap(SPMCommand):
+#     """Use spm to calculate voxel displacement map using the
+#     FieldMap Toolbox.
+#
+#     http://www.fil.ion.ucl.ac.uk/spm/doc/manual.pdf#page=173
+#
+#     Examples
+#     --------
+#
+#     >>> from nipype.interfaces.spm import FieldMap
+#     >>> fm = FieldMap()
+#     >>> st.inputs.in_files = 'functional.nii'
+#     >>> st.inputs.num_slices = 32
+#     >>> st.inputs.time_repetition = 6.0
+#     >>> st.inputs.time_acquisition = 6. - 6./32.
+#     >>> st.inputs.slice_order = list(range(32,0,-1))
+#     >>> st.inputs.ref_slice = 1
+#     >>> st.run() # doctest: +SKIP
+#
+#     """
+#
+#     input_spec = FieldMapInputSpec
+#     output_spec = FieldMapOutputSpec
+#
+#     _jobtype = 'tools.fieldmap'
+#     _jobname = 'calculatevdm.subject'
+#
+#     def _format_arg(self, opt, spec, val):
+#         """Convert input to appropriate format for spm
+#         """
+#
+#         if opt == 'presub_phase' or opt == 'presub_magnitude' or opt == 'anat':
+#             scans_for_fname(filename_to_list(val))
+#         if opt = 'presub_magnitude':
+#             scans_for_fname(filename_to_list(val))
+#         if opt == 'template':
+#             return scans_for_fname(filename_to_list(val))
+#         if opt == 'anat':
+#             return scans_for_fname(filename_to_list(val))
+#         if opt = 'epi':
+#             return scans_for_fnames(filename_to_list(val),
+#                                     keep4d=False,
+#                                     separate_sessions=False)
+#         return super(FieldMap, self)._format_arg(opt, spec, val)
+#
+#     # def _parse_inputs(self):
+#     #     """validate spm fieldmap options if set to None ignore
+#     #     """
+#     #
+#     #     einputs = super(FieldMap, self)._parse_inputs()
+#     #     return [{'%s' % (self.inputs.jobtype): einputs[0]}]
+#
+#     def _list_outputs(self):
+#         outputs = self._outputs().get()
+#         outputs['vdm_file'] = []
+#
+#         if isinstance(self.inputs.epi[0], list):
+#             first_image = self.inputs.epi[0][0]
+#         else:
+#             first_image = self.inputs.epi[0]
+#
+#         if write_unwrapped:
+#             outputs['unwarped_epi_file'] = fname_presuffix(first_image, prefix='u')
+
 
 class SliceTimingInputSpec(SPMCommandInputSpec):
     in_files = InputMultiPath(traits.Either(traits.List(File(exists=True)),
@@ -404,7 +534,7 @@ class RealignUnwarp(SPMCommand):
             first_image = self.inputs.in_files[0]
 
         if resliced_mean:
-            outputs['mean_image'] = fname_presuffix(first_image, prefix='mean')
+            outputs['mean_image'] = fname_presuffix(first_image, prefix='meanu')
 
         if resliced_all:
             outputs['realigned_unwarped_files'] = []
